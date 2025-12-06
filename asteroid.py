@@ -1,7 +1,7 @@
 import pygame
 import random
 from circleshape import CircleShape
-from constants import ASTEROID_MIN_RADIUS
+from constants import ASTEROID_MIN_RADIUS, ASTEROID_MAX_RADIUS
 
 
 class Asteroid(CircleShape):
@@ -13,6 +13,11 @@ class Asteroid(CircleShape):
 
     def update(self, dt):
         self.position += self.velocity * dt
+
+        # Asteroids spawn one ASTEROID_MAX_RADIUS outside the screen, so only
+        # remove them once they have drifted clearly past that band
+        if self.is_off_screen(ASTEROID_MAX_RADIUS * 2):
+            self.kill()
 
     def split(self):
         # Kill the current asteroid
