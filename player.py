@@ -5,6 +5,8 @@ from constants import (
     PLAYER_SPEED,
     PLAYER_SHOOT_SPEED,
     PLAYER_SHOOT_COOLDOWN,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
 )
 from circleshape import CircleShape
 from shot import Shot
@@ -47,8 +49,15 @@ class Player(CircleShape):
         if keys[pygame.K_SPACE]:
             self.shoot()
 
+        self.wrap()
+
         # Decrease the shoot timer
         self.shoot_timer -= dt
+
+    def wrap(self):
+        # Leaving one edge brings the ship back in on the opposite one
+        self.position.x %= SCREEN_WIDTH
+        self.position.y %= SCREEN_HEIGHT
 
     def move(self, dt):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
