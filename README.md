@@ -88,6 +88,7 @@ asteroids/
 ├── shot.py             # Projectile class
 ├── circleshape.py      # Base class for circular game objects
 ├── constants.py        # Game configuration constants
+├── tests/              # Unit tests
 ├── pyproject.toml      # Project configuration
 └── README.md          # This file
 ```
@@ -109,6 +110,21 @@ Game settings can be modified in `constants.py`:
 ## Development
 
 This project uses modern Python packaging with `uv` for dependency management. The code follows object-oriented principles with sprite groups for efficient game object management.
+
+### Tests
+
+The game logic is covered by unit tests in `tests/`. They use the standard
+library's `unittest`, so there is nothing extra to install:
+
+```bash
+python -m unittest
+```
+
+Or using uv:
+
+```bash
+uv run python -m unittest
+```
 
 ## License
 
