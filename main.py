@@ -4,6 +4,7 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
+from collisions import resolve_hits
 from shot import Shot
 
 
@@ -56,12 +57,8 @@ def main():
                 print("Game over!")
                 sys.exit()
 
-        # Check for collisions between shots and asteroids
-        for asteroid in asteroids:
-            for shot in shots:
-                if asteroid.has_collided(shot):
-                    asteroid.split()
-                    shot.kill()
+        # Split the asteroids that were hit by a shot
+        resolve_hits(asteroids, shots)
 
         screen.fill("black")
 
