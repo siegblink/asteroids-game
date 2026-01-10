@@ -5,6 +5,8 @@ ASTEROID_MIN_RADIUS = 20
 ASTEROID_KINDS = 3
 ASTEROID_SPAWN_RATE = 0.8  # seconds
 ASTEROID_MAX_RADIUS = ASTEROID_MIN_RADIUS * ASTEROID_KINDS
+# Points per asteroid size (1 is the smallest): small ones are harder to hit
+ASTEROID_SCORES = {1: 100, 2: 50, 3: 20}
 
 PLAYER_RADIUS = 20
 PLAYER_TURN_SPEED = 300

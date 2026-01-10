@@ -5,8 +5,10 @@ import pygame
 from asteroid import Asteroid
 from circleshape import CircleShape
 from constants import (
+    ASTEROID_KINDS,
     ASTEROID_MAX_RADIUS,
     ASTEROID_MIN_RADIUS,
+    ASTEROID_SCORES,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
@@ -67,6 +69,21 @@ class AsteroidSplitTest(unittest.TestCase):
         angle = abs(first.velocity.angle_to(second.velocity))
         self.assertGreaterEqual(angle, 40)
         self.assertLessEqual(angle, 100)
+
+
+class AsteroidScoreTest(unittest.TestCase):
+    def test_smaller_asteroids_are_worth_more(self):
+        small = Asteroid(0, 0, ASTEROID_MIN_RADIUS)
+        medium = Asteroid(0, 0, ASTEROID_MIN_RADIUS * 2)
+        large = Asteroid(0, 0, ASTEROID_MIN_RADIUS * 3)
+
+        self.assertEqual(small.score_value(), 100)
+        self.assertEqual(medium.score_value(), 50)
+        self.assertEqual(large.score_value(), 20)
+
+    def test_every_asteroid_size_has_a_score(self):
+        for kind in range(1, ASTEROID_KINDS + 1):
+            self.assertIn(kind, ASTEROID_SCORES)
 
 
 class OffScreenTest(unittest.TestCase):

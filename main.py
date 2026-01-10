@@ -43,6 +43,8 @@ def main():
     # Initialize the asteroid field
     AsteroidField()
 
+    score = 0
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -54,11 +56,12 @@ def main():
         # Check for collisions between player and asteriods
         for asteroid in asteroids:
             if player.has_collided(asteroid):
-                print("Game over!")
+                print(f"Game over! Final score: {score}")
                 sys.exit()
 
-        # Split the asteroids that were hit by a shot
-        resolve_hits(asteroids, shots)
+        # Split the asteroids that were hit by a shot and score them
+        for asteroid in resolve_hits(asteroids, shots):
+            score += asteroid.score_value()
 
         screen.fill("black")
 
