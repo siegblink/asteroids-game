@@ -1,10 +1,11 @@
 import sys
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, HUD_FONT_SIZE
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from collisions import resolve_hits
+from hud import draw_hud
 from shot import Shot
 
 
@@ -17,6 +18,7 @@ def main():
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
+    font = pygame.font.Font(None, HUD_FONT_SIZE)
     dt = 0
 
     # Create common groups
@@ -68,6 +70,8 @@ def main():
         # Draw all drawable objects
         for sprite in drawable:
             sprite.draw(screen)
+
+        draw_hud(screen, font, score)
 
         pygame.display.flip()
 
