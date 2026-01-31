@@ -1,6 +1,6 @@
 import sys
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, HUD_FONT_SIZE
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, HUD_FONT_SIZE, PLAYER_LIVES
 from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
@@ -46,6 +46,7 @@ def main():
     AsteroidField()
 
     score = 0
+    lives = PLAYER_LIVES
 
     while True:
         for event in pygame.event.get():
@@ -55,11 +56,17 @@ def main():
         # Update all updatable objects
         updatable.update(dt)
 
-        # Check for collisions between player and asteriods
-        for asteroid in asteroids:
-            if player.has_collided(asteroid):
-                print(f"Game over! Final score: {score}")
-                sys.exit()
+        # Hitting an asteroid costs a life, and the last life ends the game
+        if not player.invulnerable:
+            for asteroid in asteroids:
+                if player.has_collided(asteroid):
+                    lives -= 1
+                    if lives == 0:
+                        print(f"Game over! Final score: {score}")
+                        sys.exit()
+
+                    player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+                    break
 
         # Split the asteroids that were hit by a shot and score them
         for asteroid in resolve_hits(asteroids, shots):
@@ -71,7 +78,7 @@ def main():
         for sprite in drawable:
             sprite.draw(screen)
 
-        draw_hud(screen, font, score)
+        draw_hud(screen, font, score, lives)
 
         pygame.display.flip()
 

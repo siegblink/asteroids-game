@@ -5,6 +5,7 @@ from constants import (
     PLAYER_SPEED,
     PLAYER_SHOOT_SPEED,
     PLAYER_SHOOT_COOLDOWN,
+    PLAYER_RESPAWN_INVULNERABILITY,
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
 )
@@ -17,6 +18,18 @@ class Player(CircleShape):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.shoot_timer = 0
+        self.invulnerable_timer = 0
+
+    @property
+    def invulnerable(self):
+        return self.invulnerable_timer > 0
+
+    def respawn(self, x, y):
+        # Back to the start, with a moment of safety to get clear
+        self.position = pygame.Vector2(x, y)
+        self.rotation = 0
+        self.shoot_timer = 0
+        self.invulnerable_timer = PLAYER_RESPAWN_INVULNERABILITY
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -30,6 +43,10 @@ class Player(CircleShape):
         return [a, b, c]
 
     def draw(self, screen):
+        # Blink while invulnerable
+        if self.invulnerable and int(self.invulnerable_timer * 10) % 2 == 0:
+            return
+
         pygame.draw.polygon(screen, "white", self.triangle(), 2)
 
     def rotate(self, dt):
@@ -50,9 +67,12 @@ class Player(CircleShape):
             self.shoot()
 
         self.wrap()
+        self.tick(dt)
 
-        # Decrease the shoot timer
+    def tick(self, dt):
+        # Count the timers down
         self.shoot_timer -= dt
+        self.invulnerable_timer = max(0, self.invulnerable_timer - dt)
 
     def wrap(self):
         # Leaving one edge brings the ship back in on the opposite one
