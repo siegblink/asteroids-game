@@ -88,6 +88,27 @@ class GameTest(unittest.TestCase):
 
         self.assertEqual(asteroid.position, pygame.Vector2(100, 100))
 
+    def press(self, key):
+        self.game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
+
+    def test_r_restarts_after_game_over(self):
+        self.game.score = 500
+        self.game.lives = 0
+        self.game.over = True
+
+        self.press(pygame.K_r)
+
+        self.assertFalse(self.game.over)
+        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.game.lives, PLAYER_LIVES)
+
+    def test_r_does_nothing_during_a_round(self):
+        self.game.score = 500
+
+        self.press(pygame.K_r)
+
+        self.assertEqual(self.game.score, 500)
+
     def test_reset_starts_a_new_round(self):
         Asteroid(100, 100, ASTEROID_MIN_RADIUS)
         self.game.score = 500

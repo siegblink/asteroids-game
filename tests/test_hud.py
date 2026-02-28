@@ -3,7 +3,7 @@ import unittest
 import pygame
 
 from constants import HUD_FONT_SIZE, HUD_MARGIN, SCREEN_HEIGHT, SCREEN_WIDTH
-from hud import draw_hud
+from hud import draw_game_over, draw_hud
 
 LEFT_HALF = pygame.Rect(0, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT)
 RIGHT_HALF = pygame.Rect(SCREEN_WIDTH // 2, 0, SCREEN_WIDTH // 2, SCREEN_HEIGHT)
@@ -43,6 +43,17 @@ class HudTest(unittest.TestCase):
         self.assertLessEqual(area.right, SCREEN_WIDTH - HUD_MARGIN)
         self.assertGreaterEqual(area.top, HUD_MARGIN)
         self.assertLess(area.bottom, SCREEN_HEIGHT / 4)
+
+    def test_game_over_message_is_centred(self):
+        screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        draw_game_over(screen, self.font, 1250)
+        area = screen.get_bounding_rect()
+
+        self.assertGreater(area.width, 0)
+        self.assertAlmostEqual(area.centerx, SCREEN_WIDTH / 2, delta=2)
+        # Glyphs do not fill their line box, so the ink sits a little off centre
+        slack = self.font.get_linesize() / 2
+        self.assertAlmostEqual(area.centery, SCREEN_HEIGHT / 2, delta=slack)
 
 
 if __name__ == "__main__":

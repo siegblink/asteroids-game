@@ -3,7 +3,7 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from collisions import resolve_hits
 from constants import PLAYER_LIVES, SCREEN_HEIGHT, SCREEN_WIDTH
-from hud import draw_hud
+from hud import draw_game_over, draw_hud
 from player import Player
 from shot import Shot
 
@@ -32,7 +32,15 @@ class Game:
         self.lives = PLAYER_LIVES
         self.over = False
 
+    def handle_event(self, event):
+        if event.type != pygame.KEYDOWN:
+            return
+
+        if self.over and event.key == pygame.K_r:
+            self.reset()
+
     def update(self, dt):
+        # The scene stays frozen behind the game over screen
         if self.over:
             return
 
@@ -64,3 +72,6 @@ class Game:
             sprite.draw(screen)
 
         draw_hud(screen, font, self.score, self.lives)
+
+        if self.over:
+            draw_game_over(screen, font, self.score)

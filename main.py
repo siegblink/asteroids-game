@@ -1,4 +1,3 @@
-import sys
 import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, HUD_FONT_SIZE
 from game import Game
@@ -23,12 +22,9 @@ def main():
             if event.type == pygame.QUIT:
                 return
 
+            game.handle_event(event)
+
         game.update(dt)
-
-        if game.over:
-            print(f"Game over! Final score: {game.score}")
-            sys.exit()
-
         game.draw(screen, font)
         pygame.display.flip()
 
