@@ -12,8 +12,16 @@ def draw_hud(screen, font, score, lives):
 
 
 def draw_game_over(screen, font, score):
-    # Three centred lines over the frozen game
     lines = ["GAME OVER", f"Final score: {score}", "Press R to play again"]
+    draw_centred(screen, font, lines)
+
+
+def draw_paused(screen, font):
+    draw_centred(screen, font, ["PAUSED", "Press P to continue"])
+
+
+def draw_centred(screen, font, lines):
+    # A block of centred lines over the frozen game
     line_height = font.get_linesize()
     top = (screen.get_height() - line_height * len(lines)) / 2
 

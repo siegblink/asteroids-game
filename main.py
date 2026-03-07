@@ -21,6 +21,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                return
 
             game.handle_event(event)
 

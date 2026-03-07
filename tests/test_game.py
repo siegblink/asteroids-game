@@ -109,6 +109,34 @@ class GameTest(unittest.TestCase):
 
         self.assertEqual(self.game.score, 500)
 
+    def test_p_pauses_and_resumes(self):
+        asteroid = Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        asteroid.velocity = pygame.Vector2(50, 0)
+
+        self.press(pygame.K_p)
+        self.game.update(1)
+        self.assertTrue(self.game.paused)
+        self.assertEqual(asteroid.position, pygame.Vector2(100, 100))
+
+        self.press(pygame.K_p)
+        self.game.update(1)
+        self.assertFalse(self.game.paused)
+        self.assertEqual(asteroid.position, pygame.Vector2(150, 100))
+
+    def test_p_does_nothing_after_game_over(self):
+        self.game.over = True
+
+        self.press(pygame.K_p)
+
+        self.assertFalse(self.game.paused)
+
+    def test_a_new_round_is_not_paused(self):
+        self.press(pygame.K_p)
+
+        self.game.reset()
+
+        self.assertFalse(self.game.paused)
+
     def test_reset_starts_a_new_round(self):
         Asteroid(100, 100, ASTEROID_MIN_RADIUS)
         self.game.score = 500
