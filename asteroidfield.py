@@ -5,6 +5,8 @@ from constants import (
     ASTEROID_KINDS,
     ASTEROID_MAX_RADIUS,
     ASTEROID_MIN_RADIUS,
+    ASTEROID_MIN_SPAWN_RATE,
+    ASTEROID_SPAWN_RAMP,
     ASTEROID_SPAWN_RATE,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
@@ -38,14 +40,21 @@ class AsteroidField(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self, self.containers)
         self.spawn_timer = 0.0
+        self.elapsed = 0.0
+
+    def spawn_rate(self):
+        # Asteroids arrive faster the longer the round lasts, down to a floor
+        rate = ASTEROID_SPAWN_RATE - self.elapsed * ASTEROID_SPAWN_RAMP
+        return max(ASTEROID_MIN_SPAWN_RATE, rate)
 
     def spawn(self, radius, position, velocity):
         asteroid = Asteroid(position.x, position.y, radius)
         asteroid.velocity = velocity
 
     def update(self, dt):
+        self.elapsed += dt
         self.spawn_timer += dt
-        if self.spawn_timer > ASTEROID_SPAWN_RATE:
+        if self.spawn_timer > self.spawn_rate():
             self.spawn_timer = 0
 
             # spawn a new asteroid at a random edge

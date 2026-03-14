@@ -8,6 +8,8 @@ from constants import (
     ASTEROID_KINDS,
     ASTEROID_MAX_RADIUS,
     ASTEROID_MIN_RADIUS,
+    ASTEROID_MIN_SPAWN_RATE,
+    ASTEROID_SPAWN_RAMP,
     ASTEROID_SPAWN_RATE,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
@@ -65,6 +67,32 @@ class AsteroidFieldTest(unittest.TestCase):
             before = asteroid.position.distance_to(centre)
             after = (asteroid.position + asteroid.velocity * 0.1).distance_to(centre)
             self.assertLess(after, before)
+
+    def test_a_round_starts_at_the_base_spawn_rate(self):
+        self.assertEqual(self.field.spawn_rate(), ASTEROID_SPAWN_RATE)
+
+    def test_asteroids_arrive_faster_as_the_round_goes_on(self):
+        self.field.elapsed = 20
+
+        expected = ASTEROID_SPAWN_RATE - 20 * ASTEROID_SPAWN_RAMP
+        self.assertAlmostEqual(self.field.spawn_rate(), expected)
+        self.assertLess(self.field.spawn_rate(), ASTEROID_SPAWN_RATE)
+
+    def test_the_spawn_rate_never_drops_below_the_floor(self):
+        self.field.elapsed = 10_000
+
+        self.assertEqual(self.field.spawn_rate(), ASTEROID_MIN_SPAWN_RATE)
+
+    def test_a_late_round_spawns_more_asteroids_in_the_same_time(self):
+        def spawned_in_ten_seconds(elapsed):
+            self.asteroids.empty()
+            self.field.elapsed = elapsed
+            self.field.spawn_timer = 0
+            for _ in range(600):
+                self.field.update(1 / 60)
+            return len(self.asteroids)
+
+        self.assertGreater(spawned_in_ten_seconds(200), spawned_in_ten_seconds(0))
 
 
 if __name__ == "__main__":

@@ -4,6 +4,10 @@ SCREEN_HEIGHT = 720
 ASTEROID_MIN_RADIUS = 20
 ASTEROID_KINDS = 3
 ASTEROID_SPAWN_RATE = 0.8  # seconds
+# The spawn rate shortens by this much for every second of a round, so a
+# round reaches its fastest pace after 100 seconds
+ASTEROID_SPAWN_RAMP = 0.005
+ASTEROID_MIN_SPAWN_RATE = 0.3  # seconds
 ASTEROID_MAX_RADIUS = ASTEROID_MIN_RADIUS * ASTEROID_KINDS
 # Points per asteroid size (1 is the smallest): small ones are harder to hit
 ASTEROID_SCORES = {1: 100, 2: 50, 3: 20}
