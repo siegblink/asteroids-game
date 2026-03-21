@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 import pygame
 
@@ -28,7 +30,11 @@ class GameTest(unittest.TestCase):
         pygame.display.quit()
 
     def setUp(self):
-        self.game = Game()
+        # Each test keeps its high score in a folder of its own
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.high_score_file = Path(folder.name) / "highscore"
+        self.game = Game(self.high_score_file)
 
     def tearDown(self):
         # Leave the sprite classes as the other tests expect to find them
@@ -136,6 +142,35 @@ class GameTest(unittest.TestCase):
         self.game.reset()
 
         self.assertFalse(self.game.paused)
+
+    def lose_the_round(self, score):
+        self.game.score = score
+        self.game.lives = 1
+        self.game.player.invulnerable_timer = 0
+        position = self.game.player.position
+        Asteroid(position.x, position.y, ASTEROID_MIN_RADIUS)
+        self.game.update(0)
+
+    def test_a_first_game_has_no_high_score(self):
+        self.assertEqual(self.game.high_score, 0)
+
+    def test_beating_the_high_score_saves_it(self):
+        self.lose_the_round(score=700)
+
+        self.assertTrue(self.game.over)
+        self.assertTrue(self.game.new_high_score)
+        self.assertEqual(self.game.high_score, 700)
+        self.assertEqual(Game(self.high_score_file).high_score, 700)
+
+    def test_a_lower_score_leaves_the_high_score_alone(self):
+        self.lose_the_round(score=700)
+        self.game.reset()
+
+        self.lose_the_round(score=300)
+
+        self.assertFalse(self.game.new_high_score)
+        self.assertEqual(self.game.high_score, 700)
+        self.assertEqual(Game(self.high_score_file).high_score, 700)
 
     def test_reset_starts_a_new_round(self):
         Asteroid(100, 100, ASTEROID_MIN_RADIUS)

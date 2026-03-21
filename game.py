@@ -3,6 +3,7 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from collisions import resolve_hits
 from constants import PLAYER_LIVES, SCREEN_HEIGHT, SCREEN_WIDTH
+from highscore import HIGH_SCORE_FILE, load_high_score, save_high_score
 from hud import draw_game_over, draw_hud, draw_paused
 from player import Player
 from shot import Shot
@@ -11,7 +12,9 @@ from shot import Shot
 class Game:
     # One round of the game: the sprites, the score and the lives
 
-    def __init__(self):
+    def __init__(self, high_score_file=HIGH_SCORE_FILE):
+        self.high_score_file = high_score_file
+        self.high_score = load_high_score(high_score_file)
         self.reset()
 
     def reset(self):
@@ -32,6 +35,7 @@ class Game:
         self.lives = PLAYER_LIVES
         self.over = False
         self.paused = False
+        self.new_high_score = False
 
     def handle_event(self, event):
         if event.type != pygame.KEYDOWN:
@@ -64,9 +68,16 @@ class Game:
                 self.lives -= 1
                 if self.lives == 0:
                     self.over = True
+                    self.record_high_score()
                 else:
                     self.player.respawn(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
                 return
+
+    def record_high_score(self):
+        if self.score > self.high_score:
+            self.high_score = self.score
+            self.new_high_score = True
+            save_high_score(self.high_score, self.high_score_file)
 
     def draw(self, screen, font):
         screen.fill("black")
@@ -74,9 +85,9 @@ class Game:
         for sprite in self.drawable:
             sprite.draw(screen)
 
-        draw_hud(screen, font, self.score, self.lives)
+        draw_hud(screen, font, self.score, self.lives, self.high_score)
 
         if self.over:
-            draw_game_over(screen, font, self.score)
+            draw_game_over(screen, font, self.score, self.new_high_score)
         elif self.paused:
             draw_paused(screen, font)
