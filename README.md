@@ -10,7 +10,10 @@ A classic Asteroids game implementation in Python using Pygame. Navigate your sp
 - **Collision Detection**: Precise collision detection between player, shots, and asteroids
 - **Asteroid Splitting**: Large asteroids split into smaller pieces when destroyed
 - **Shooting Mechanics**: Cooldown-based shooting system with projectile physics
-- **Game Over**: Collision detection ends the game when hitting asteroids
+- **Scoring**: Points for every asteroid destroyed, with a high score that is kept between runs
+- **Lives**: Three lives, with a short spell of protection after each hit
+- **Rising Difficulty**: Asteroids arrive faster the longer a round lasts
+- **Pause and Restart**: Pause a round, and start a new one from the game over screen
 
 ## Installation
 
@@ -23,8 +26,8 @@ A classic Asteroids game implementation in Python using Pygame. Navigate your sp
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd asteroids
+git clone https://github.com/siegblink/asteroids-game.git
+cd asteroids-game
 ```
 
 2. Install dependencies using uv (recommended) or pip:
@@ -57,7 +60,9 @@ uv run python main.py
 - **W**: Move ship forward
 - **S**: Move ship backward
 - **SPACE**: Shoot projectiles
-- **ESC/Quit**: Close the game window
+- **P**: Pause and resume
+- **R**: Start a new round from the game over screen
+- **ESC**: Close the game window
 
 ## Game Mechanics
 
@@ -65,27 +70,44 @@ uv run python main.py
 - The ship rotates in place and moves in the direction it's facing
 - Forward movement (W) propels the ship in the direction of the ship's nose
 - Backward movement (S) moves the ship opposite to its facing direction
+- Flying off one edge of the screen brings the ship back in on the opposite edge
 
 ### Asteroids
 - Asteroids spawn continuously in the asteroid field
 - Three different sizes of asteroids (determined by `ASTEROID_KINDS` in constants.py)
 - Larger asteroids split into smaller asteroids when destroyed
 - Smallest asteroids are destroyed completely when hit
+- The gap between spawns shrinks from 0.8 to 0.3 seconds over the first 100 seconds of a round
 
 ### Combat
 - Projectiles have a cooldown period between shots (`PLAYER_SHOOT_COOLDOWN`)
 - Asteroids are destroyed when hit by projectiles
-- Game ends when the ship collides with an asteroid
+- A collision with an asteroid costs one of three lives and returns the ship to the centre, where it blinks and cannot be hit for two seconds
+- The game ends when the last life is lost
+
+### Scoring
+
+| Asteroid | Points |
+| -------- | ------ |
+| Large    | 20     |
+| Medium   | 50     |
+| Small    | 100    |
+
+The best score is saved in a `.highscore` file next to the game and shown at the top of the screen.
 
 ## Project Structure
 
 ```
-asteroids/
-├── main.py              # Main game loop and initialization
+asteroids-game/
+├── main.py              # Window, clock and event loop
+├── game.py              # One round: sprites, score, lives, pause and game over
 ├── player.py            # Player ship class and controls
 ├── asteroid.py          # Asteroid class and splitting mechanics
 ├── asteroidfield.py     # Asteroid spawning system
 ├── shot.py             # Projectile class
+├── collisions.py       # Shots hitting asteroids
+├── hud.py              # Score, lives and on-screen messages
+├── highscore.py        # Loading and saving the high score
 ├── circleshape.py      # Base class for circular game objects
 ├── constants.py        # Game configuration constants
 ├── tests/              # Unit tests
@@ -98,7 +120,11 @@ asteroids/
 Game settings can be modified in `constants.py`:
 
 - `SCREEN_WIDTH` and `SCREEN_HEIGHT`: Window dimensions
-- `ASTEROID_SPAWN_RATE`: How often asteroids spawn (in seconds)
+- `ASTEROID_SPAWN_RATE`: How often asteroids spawn at the start of a round (in seconds)
+- `ASTEROID_SPAWN_RAMP` and `ASTEROID_MIN_SPAWN_RATE`: How quickly the spawning speeds up, and its limit
+- `ASTEROID_SCORES`: Points for each asteroid size
+- `PLAYER_LIVES`: Lives per round
+- `PLAYER_RESPAWN_INVULNERABILITY`: Protection after a hit (in seconds)
 - `PLAYER_SPEED`: Ship movement speed
 - `PLAYER_SHOOT_SPEED`: Projectile velocity
 - `PLAYER_SHOOT_COOLDOWN`: Time between shots (in seconds)
