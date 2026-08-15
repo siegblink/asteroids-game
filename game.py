@@ -5,6 +5,7 @@ from collisions import resolve_hits
 from constants import PLAYER_LIVES, SCREEN_HEIGHT, SCREEN_WIDTH
 from highscore import HIGH_SCORE_FILE, load_high_score, save_high_score
 from hud import draw_game_over, draw_hud, draw_paused
+from particle import Particle, burst
 from player import Player
 from shot import Shot
 
@@ -28,6 +29,7 @@ class Game:
         Shot.containers = (self.shots, self.updatable, self.drawable)
         Asteroid.containers = (self.asteroids, self.updatable, self.drawable)
         AsteroidField.containers = self.updatable
+        Particle.containers = (self.updatable, self.drawable)
 
         self.player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
         self.field = AsteroidField()
@@ -57,6 +59,7 @@ class Game:
         # Split the asteroids that were hit by a shot and score them
         for asteroid in resolve_hits(self.asteroids, self.shots):
             self.score += asteroid.score_value()
+            burst(asteroid.position.x, asteroid.position.y)
 
     def check_player_hit(self):
         # Hitting an asteroid costs a life, and the last life ends the game

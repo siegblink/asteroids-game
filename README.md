@@ -106,6 +106,7 @@ asteroids-game/
 ├── asteroidfield.py     # Asteroid spawning system
 ├── shot.py             # Projectile class
 ├── collisions.py       # Shots hitting asteroids
+├── particle.py         # Debris when an asteroid breaks
 ├── hud.py              # Score, lives and on-screen messages
 ├── highscore.py        # Loading and saving the high score
 ├── circleshape.py      # Base class for circular game objects

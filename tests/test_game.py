@@ -8,11 +8,13 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from constants import (
     ASTEROID_MIN_RADIUS,
+    PARTICLE_COUNT,
     PLAYER_LIVES,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
 from game import Game
+from particle import Particle
 from player import Player
 from shot import Shot
 
@@ -38,7 +40,7 @@ class GameTest(unittest.TestCase):
 
     def tearDown(self):
         # Leave the sprite classes as the other tests expect to find them
-        for sprite_class in (Player, Shot, Asteroid, AsteroidField):
+        for sprite_class in (Player, Shot, Asteroid, AsteroidField, Particle):
             del sprite_class.containers
 
     def test_a_new_game_starts_clean(self):
@@ -56,6 +58,17 @@ class GameTest(unittest.TestCase):
 
         self.assertEqual(self.game.score, 100)
         self.assertEqual(len(self.game.asteroids), 0)
+
+    def test_a_destroyed_asteroid_leaves_a_burst_of_particles(self):
+        Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        Shot(100, 100)
+
+        self.game.update(0)
+
+        particles = [s for s in self.game.drawable if isinstance(s, Particle)]
+        self.assertEqual(len(particles), PARTICLE_COUNT)
+        for particle in particles:
+            self.assertEqual(particle.position, pygame.Vector2(100, 100))
 
     def test_hitting_an_asteroid_costs_a_life(self):
         self.game.player.position = pygame.Vector2(200, 200)
