@@ -6,11 +6,8 @@ from game import Game
 def main():
     pygame.init()
 
-    print("Starting Asteroids!")
-    print(f"Screen width: {SCREEN_WIDTH}")
-    print(f"Screen height: {SCREEN_HEIGHT}")
-
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Asteroids")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, HUD_FONT_SIZE)
     dt = 0
