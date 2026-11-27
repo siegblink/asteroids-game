@@ -12,3 +12,7 @@ class Shot(CircleShape):
 
     def update(self, dt):
         self.position += self.velocity * dt
+
+        # A shot that has left the screen can never hit anything again
+        if self.is_off_screen(self.radius):
+            self.kill()

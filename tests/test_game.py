@@ -1,0 +1,203 @@
+import tempfile
+import unittest
+from pathlib import Path
+
+import pygame
+
+from asteroid import Asteroid
+from asteroidfield import AsteroidField
+from constants import (
+    ASTEROID_MIN_RADIUS,
+    PARTICLE_COUNT,
+    PLAYER_LIVES,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+)
+from game import Game
+from particle import Particle
+from player import Player
+from shot import Shot
+
+CENTRE = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+
+
+class GameTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # The player reads the keyboard, which needs the video system
+        pygame.display.init()
+
+    @classmethod
+    def tearDownClass(cls):
+        pygame.display.quit()
+
+    def setUp(self):
+        # Each test keeps its high score in a folder of its own
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.high_score_file = Path(folder.name) / "highscore"
+        self.game = Game(self.high_score_file)
+
+    def tearDown(self):
+        # Leave the sprite classes as the other tests expect to find them
+        for sprite_class in (Player, Shot, Asteroid, AsteroidField, Particle):
+            del sprite_class.containers
+
+    def test_a_new_game_starts_clean(self):
+        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.game.lives, PLAYER_LIVES)
+        self.assertFalse(self.game.over)
+        self.assertEqual(self.game.player.position, CENTRE)
+        self.assertEqual(len(self.game.asteroids), 0)
+
+    def test_destroying_an_asteroid_scores_it(self):
+        Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        Shot(100, 100)
+
+        self.game.update(0)
+
+        self.assertEqual(self.game.score, 100)
+        self.assertEqual(len(self.game.asteroids), 0)
+
+    def test_a_destroyed_asteroid_leaves_a_burst_of_particles(self):
+        Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        Shot(100, 100)
+
+        self.game.update(0)
+
+        particles = [s for s in self.game.drawable if isinstance(s, Particle)]
+        self.assertEqual(len(particles), PARTICLE_COUNT)
+        for particle in particles:
+            self.assertEqual(particle.position, pygame.Vector2(100, 100))
+
+    def test_hitting_an_asteroid_costs_a_life(self):
+        self.game.player.position = pygame.Vector2(200, 200)
+        Asteroid(200, 200, ASTEROID_MIN_RADIUS)
+
+        self.game.update(0)
+
+        self.assertEqual(self.game.lives, PLAYER_LIVES - 1)
+        self.assertFalse(self.game.over)
+        self.assertEqual(self.game.player.position, CENTRE)
+        self.assertTrue(self.game.player.invulnerable)
+
+    def test_a_protected_player_is_not_hit(self):
+        self.game.player.respawn(CENTRE.x, CENTRE.y)
+        Asteroid(CENTRE.x, CENTRE.y, ASTEROID_MIN_RADIUS)
+
+        self.game.update(0)
+
+        self.assertEqual(self.game.lives, PLAYER_LIVES)
+
+    def test_losing_the_last_life_ends_the_game(self):
+        self.game.lives = 1
+        Asteroid(CENTRE.x, CENTRE.y, ASTEROID_MIN_RADIUS)
+
+        self.game.update(0)
+
+        self.assertEqual(self.game.lives, 0)
+        self.assertTrue(self.game.over)
+
+    def test_nothing_moves_once_the_game_is_over(self):
+        asteroid = Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        asteroid.velocity = pygame.Vector2(50, 0)
+        self.game.over = True
+
+        self.game.update(1)
+
+        self.assertEqual(asteroid.position, pygame.Vector2(100, 100))
+
+    def press(self, key):
+        self.game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
+
+    def test_r_restarts_after_game_over(self):
+        self.game.score = 500
+        self.game.lives = 0
+        self.game.over = True
+
+        self.press(pygame.K_r)
+
+        self.assertFalse(self.game.over)
+        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.game.lives, PLAYER_LIVES)
+
+    def test_r_does_nothing_during_a_round(self):
+        self.game.score = 500
+
+        self.press(pygame.K_r)
+
+        self.assertEqual(self.game.score, 500)
+
+    def test_p_pauses_and_resumes(self):
+        asteroid = Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        asteroid.velocity = pygame.Vector2(50, 0)
+
+        self.press(pygame.K_p)
+        self.game.update(1)
+        self.assertTrue(self.game.paused)
+        self.assertEqual(asteroid.position, pygame.Vector2(100, 100))
+
+        self.press(pygame.K_p)
+        self.game.update(1)
+        self.assertFalse(self.game.paused)
+        self.assertEqual(asteroid.position, pygame.Vector2(150, 100))
+
+    def test_p_does_nothing_after_game_over(self):
+        self.game.over = True
+
+        self.press(pygame.K_p)
+
+        self.assertFalse(self.game.paused)
+
+    def test_a_new_round_is_not_paused(self):
+        self.press(pygame.K_p)
+
+        self.game.reset()
+
+        self.assertFalse(self.game.paused)
+
+    def lose_the_round(self, score):
+        self.game.score = score
+        self.game.lives = 1
+        self.game.player.invulnerable_timer = 0
+        position = self.game.player.position
+        Asteroid(position.x, position.y, ASTEROID_MIN_RADIUS)
+        self.game.update(0)
+
+    def test_a_first_game_has_no_high_score(self):
+        self.assertEqual(self.game.high_score, 0)
+
+    def test_beating_the_high_score_saves_it(self):
+        self.lose_the_round(score=700)
+
+        self.assertTrue(self.game.over)
+        self.assertTrue(self.game.new_high_score)
+        self.assertEqual(self.game.high_score, 700)
+        self.assertEqual(Game(self.high_score_file).high_score, 700)
+
+    def test_a_lower_score_leaves_the_high_score_alone(self):
+        self.lose_the_round(score=700)
+        self.game.reset()
+
+        self.lose_the_round(score=300)
+
+        self.assertFalse(self.game.new_high_score)
+        self.assertEqual(self.game.high_score, 700)
+        self.assertEqual(Game(self.high_score_file).high_score, 700)
+
+    def test_reset_starts_a_new_round(self):
+        Asteroid(100, 100, ASTEROID_MIN_RADIUS)
+        self.game.score = 500
+        self.game.lives = 0
+        self.game.over = True
+
+        self.game.reset()
+
+        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.game.lives, PLAYER_LIVES)
+        self.assertFalse(self.game.over)
+        self.assertEqual(len(self.game.asteroids), 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
